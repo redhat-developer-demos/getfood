@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: populatefooddb
+spec:
+  template:
+    spec:
+      containers:
+      - name: populatefooddb
+        image: postgres:14
+        command: ["psql", "postgresql://postgres:postgres@postgresql/foods", "-c", "\\copy food FROM '/etc/rsalbums/fooddisplaytable.csv' CSV HEADER;"]
+        volumeMounts:
+        - name: albums-volume
+          mountPath: /etc/rsalbums
+      volumes:
+      - name: albums-volume
+        configMap:
+          name: db-config
+      restartPolicy: Never
+  backoffLimit: 4
+

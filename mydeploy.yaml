@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: getfood
+  name: getfood
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: getfood
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        deployment: getfood
+        app.kubernetes.io/part-of: foods
+    spec:
+      initContainers:
+      - name: init-createdb
+        image: postgres:14
+        command: ["psql", "postgresql://postgres:postgres@postgresql", "-f", "/etc/rsalbums/create_database.sql"]
+        volumeMounts:
+        - name: albums-volume
+          mountPath: /etc/rsalbums
+
+      - name: init-builddb
+        image: postgres:14
+        command: ["psql", "postgresql://postgres:postgres@postgresql/foods", "-f", "/etc/rsalbums/build_tables.sql"]
+        volumeMounts:
+        - name: albums-volume
+          mountPath: /etc/rsalbums
+
+      - name: init-populatedb
+        image: postgres:14
+        command: ["psql", "postgresql://postgres:postgres@postgresql/foods", "-c", "\\copy food FROM '/etc/rsalbums/fooddisplaytable.csv' CSV HEADER;"]
+        volumeMounts:
+        - name: albums-volume
+          mountPath: /etc/rsalbums
+
+      containers:
+        - name: getfood
+          image: quay.io/donschenck/getfood:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+            - containerPort: 8443
+              protocol: TCP
+
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+      strategy:
+        type: RollingUpdate
+        rollingUpdate:
+          maxUnavailable: 25%
+          maxSurge: 25%
+      revisionHistoryLimit: 10
+      progressDeadlineSeconds: 600
+
+      volumes:
+      - name: albums-volume
+        configMap:
+          name: db-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: null
+  labels:
+    app: getfood
+  name: getfood
+spec:
+  ports:
+  - name: 8080-tcp
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: 8443-tcp
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    deployment: getfood
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: getfood
+  labels:
+    app: getfood
+spec:
+  to:
+    kind: Service
+    name: getfood
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  wildcardPolicy: None
