@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: getfood
+    app.kubernetes.io/part-of: foods
   name: getfood
 spec:
   replicas: 1
@@ -14,7 +15,6 @@ spec:
     metadata:
       labels:
         deployment: getfood
-        app.kubernetes.io/part-of: foods
     spec:
       initContainers:
       - name: init-createdb
@@ -73,6 +73,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: getfood
+    app.kubernetes.io/part-of: foods
   name: getfood
 spec:
   ports:
@@ -93,6 +94,7 @@ metadata:
   name: getfood
   labels:
     app: getfood
+    app.kubernetes.io/part-of: foods
 spec:
   to:
     kind: Service
