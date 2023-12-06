@@ -1,4 +1,4 @@
-CREATE TAble IF NOT EXISTS food (
+CREATE TABLE IF NOT EXISTS food (
 	food_code int,
 	display_name vaRcHaR( 80 ),
 	portion_default int,

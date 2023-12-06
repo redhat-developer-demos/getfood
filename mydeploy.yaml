@@ -40,7 +40,7 @@ spec:
 
       containers:
         - name: getfood
-          image: quay.io/donschenck/getfood:latest
+          image: quay.io/rhdevelopers/food-service:latest
           ports:
             - containerPort: 8080
               protocol: TCP
