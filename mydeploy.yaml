@@ -100,6 +100,8 @@ spec:
     kind: Service
     name: getfood
     weight: 100
+  tls:
+    termination: edge
   port:
     targetPort: 8080-tcp
   wildcardPolicy: None
